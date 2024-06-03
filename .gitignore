@@ -1,0 +1,20 @@
+node_modules
+build
+
+# VSCode
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extentions.json
+!.vscode/*.code-snippets
+
+.history/
+
+*.vsix
+
+# Tests
+
+coverage
+
