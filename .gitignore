@@ -18,3 +18,5 @@ build
 
 coverage
 
+# misc
+.env
