@@ -67,6 +67,10 @@ export const loginUser = async (req: Request, res: Response) => {
     .catch((err) => res.status(400).json({ message: `Error happend on server ${err}` }));
 };
 
+export const getUser = (req: Request, res: Response) => {
+  return res.json(req.user);
+};
+
 export const updatePassword = async () => {};
 
 export default passport;

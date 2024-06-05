@@ -1,24 +1,28 @@
 import express from "express";
 import mongoose from "mongoose";
-import session from "express-session";
-import passport from "./config/auth";
-import user from "./routes/user";
+import user from "./routes/UserRouter";
 import bodyParser from "body-parser";
 import { mongoURI } from "./config/keys";
+import passport from "passport";
+import passportJwtStrategy from "./config/passport";
+import cors from "cors";
 
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.use(cors());
+
 mongoose
   .connect(mongoURI as string)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
-app.use(session({ secret: mongoURI as string, resave: false, saveUninitialized: true }));
+// app.use(session({ secret: mongoURI as string, resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
-app.use(passport.session());
+
+passportJwtStrategy(passport);
 
 app.use("/api/user", user);
 
