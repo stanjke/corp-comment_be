@@ -1,12 +1,12 @@
 import passport from "passport";
-import { getUser, loginUser, registerUser } from "../controllers/users/users";
+import { getUser, loginUser, registerUser, updatePassword } from "../controllers/users/users";
 import express from "express";
 
 const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-// router.get("/user", getUser);
 router.get("/user", passport.authenticate("jwt", { session: false }), getUser);
+router.put("/password", passport.authenticate("jwt", { session: false }), updatePassword);
 
 export default router;

@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import user from "./routes/UserRouter";
+import comment from "./routes/CommentRouter";
 import bodyParser from "body-parser";
 import { mongoURI } from "./config/keys";
 import passport from "passport";
@@ -12,7 +13,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use(cors());
+// app.use(cors());
 
 mongoose
   .connect(mongoURI as string)
@@ -25,6 +26,7 @@ app.use(passport.initialize());
 passportJwtStrategy(passport);
 
 app.use("/api/user", user);
+app.use("/api/comment", comment);
 
 const port = 3000;
 

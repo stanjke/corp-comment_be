@@ -1,5 +1,5 @@
 import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
-// import { secretOrKey } from "./keys";
+import { secretOrKey } from "./keys";
 import { IUser, User } from "../models/User";
 import { PassportStatic } from "passport";
 
@@ -8,7 +8,7 @@ export default (passport: PassportStatic) => {
     new JWTStrategy(
       {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: "corpCommentSecretKey",
+        secretOrKey: secretOrKey as string,
       },
       (payload, done) => {
         User.findById(payload.id)

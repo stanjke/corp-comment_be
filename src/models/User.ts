@@ -1,14 +1,17 @@
-import mongoose, { type Document } from "mongoose";
+import mongoose, { type Document, Schema } from "mongoose";
+import bcrypt from "bcryptjs";
 
-const Schema = mongoose.Schema;
-
-export interface IUser extends Document {
+export interface IUser {
   email: string;
   login: string;
   password: string;
 }
 
-const userSchema = new Schema<IUser>({
+export interface IUserDocument extends IUser, Document {
+  comparePassword: (password: string) => boolean;
+}
+
+const UserSchema = new Schema<IUserDocument>({
   email: {
     type: String,
     unique: true,
@@ -25,4 +28,8 @@ const userSchema = new Schema<IUser>({
   },
 });
 
-export const User = mongoose.model<IUser>("User", userSchema);
+UserSchema.methods.comparePassword = async function (oldPassword: string) {
+  return await bcrypt.compare(oldPassword, this.password).then((isMatch) => isMatch);
+};
+
+export const User = mongoose.model<IUserDocument>("User", UserSchema);
