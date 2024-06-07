@@ -7,6 +7,7 @@ import { mongoURI } from "./config/keys";
 import passport from "passport";
 import passportJwtStrategy from "./config/passport";
 import cors from "cors";
+import { AppRoute } from "./config/constants";
 
 const app = express();
 
@@ -25,8 +26,8 @@ app.use(passport.initialize());
 
 passportJwtStrategy(passport);
 
-app.use("/api/user", user);
-app.use("/api/comment", comment);
+app.use(AppRoute.USER, user);
+app.use(AppRoute.COMMENT, comment);
 
 const port = 3000;
 

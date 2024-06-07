@@ -29,6 +29,9 @@ export const getAllComments = (req: Request, res: Response) => {
 
 export const rateComment = () => {}; //PATCH
 
-export const deleteComment = () => {}; //DELTE
+export const deleteComment = (req: Request, res: Response) => {
+  // const userData = req.user as IUserDocument;
+  // Comment.findOneAndDelete({author: userData.id})
+}; //DELTE
 
 export const editComment = () => {}; //PATCH

@@ -16,7 +16,7 @@ export const registerUser = (req: Request, res: Response) => {
 
   const { login, password, email } = userData;
 
-  User.findOne({ email })
+  User.findOne({ $or: [{ email }, { login }] })
     .then((user) => {
       if (user) {
         if (user.email === email) {
