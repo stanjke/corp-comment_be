@@ -100,8 +100,6 @@ export const updatePassword = async (req: Request, res: Response) => {
 
     const isMatch: boolean = await user.comparePassword(oldPassword);
 
-    console.log("isMatch", isMatch);
-
     if (!isMatch) {
       return res.status(400).json({ message: "Password dosen't match" });
     }

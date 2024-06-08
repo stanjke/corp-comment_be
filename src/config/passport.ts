@@ -1,6 +1,6 @@
 import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
 import { secretOrKey } from "./keys";
-import { IUser, User } from "../models/User";
+import { User } from "../models/User";
 import { PassportStatic } from "passport";
 
 export default (passport: PassportStatic) => {

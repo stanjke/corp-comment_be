@@ -1,11 +1,12 @@
 import request from "supertest";
-import express from "express";
+import express, { NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import jwt from "jsonwebtoken";
-import { IUserDocument, User } from "../../models/User";
+import { IUser, IUserDocument, User } from "../../models/User";
 import { getUser, loginUser, registerUser, updatePassword } from "./users";
 import { UserRoute } from "../../config/constants";
+// import passportJwtStrategy from "../../config/passport";
 
 jest.mock("bcryptjs");
 jest.mock("jsonwebtoken");
@@ -14,11 +15,13 @@ jest.mock("../../models/User");
 
 const app = express();
 app.use(express.json());
+// app.use(passport.initialize());
+// passportJwtStrategy(passport);
 
 app.post(UserRoute.REGISTER, registerUser);
 app.post(UserRoute.LOGIN, loginUser);
-app.post(UserRoute.GET_USER, getUser);
-app.post(UserRoute.UPDATE_PASSWORD, updatePassword);
+app.get(UserRoute.GET_USER, getUser);
+app.put(UserRoute.UPDATE_PASSWORD, updatePassword);
 
 const userMockedData = {
   id: "userId",
@@ -29,17 +32,36 @@ const userMockedData = {
   anotherPassword: "hashedPassword",
 };
 
+interface IUserTest {
+  user: {
+    id?: string;
+    password?: string;
+    email?: string;
+  };
+}
+
 describe("User Controller", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe("User registration", () => {
-    it("should return status 400 if fields are missing", async () => {
-      const res = await request(app).post(UserRoute.REGISTER).send({ email: userMockedData.email });
-
-      expect(res.status).toBe(400);
-      expect(res.body.message).toBe("Fill correct fields");
+    describe("Required fields", () => {
+      it("should return status 400 if email field is missing", async () => {
+        const res = await request(app).post(UserRoute.LOGIN).send({ password: userMockedData.password, login: userMockedData.login });
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe("Fill correct fields");
+      });
+      it("should return status 400 if login field is missing", async () => {
+        const res = await request(app).post(UserRoute.LOGIN).send({ email: userMockedData.email, password: userMockedData.password });
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe("Fill correct fields");
+      });
+      it("should return status 400 if password field is missing", async () => {
+        const res = await request(app).post(UserRoute.LOGIN).send({ email: userMockedData.email, login: userMockedData.login });
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe("Fill correct fields");
+      });
     });
 
     it("should return status 400 if email already exist", async () => {
@@ -79,10 +101,17 @@ describe("User Controller", () => {
   });
 
   describe("Login user", () => {
-    it("should return status 400 if fileds are missing", async () => {
-      const res = await request(app).post(UserRoute.LOGIN).send({ email: userMockedData.email });
-      expect(res.status).toBe(400);
-      expect(res.body.message).toBe("Fill correct fields");
+    describe("Required fields", () => {
+      it("should return status 400 if loginOrEmail field is missing", async () => {
+        const res = await request(app).post(UserRoute.LOGIN).send({ password: userMockedData.password });
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe("Fill correct fields");
+      });
+      it("should return status 400 if password field is missing", async () => {
+        const res = await request(app).post(UserRoute.LOGIN).send({ loginOrEmail: userMockedData.email });
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe("Fill correct fields");
+      });
     });
 
     it("should return status 400 if user not found", async () => {
@@ -120,14 +149,66 @@ describe("User Controller", () => {
   describe("Get user", () => {
     it("should return status 401 if jwt token expired or invalid", async () => {
       const user = { id: userMockedData.id, password: userMockedData.password };
-      (passport.authenticate as jest.Mock) = jest.fn((strategy, options, callback) => (req: Request, res: Response) => {
-        req.user: IUserDocument = user ;
+      (passport.authenticate as jest.Mock) = jest.fn((strategy, options, callback) => (req: IUserTest) => {
+        req.user = user;
         callback(null, user);
       });
 
       const res = await request(app).get(UserRoute.GET_USER);
 
       expect(res.status).toBe(200);
+      expect(res).toEqual(user);
     });
   });
+
+  describe("User password", () => {
+    describe("Required fields", () => {
+      it("should return status 400 if newPassword field is missing", async () => {
+        const res = await request(app).put(UserRoute.UPDATE_PASSWORD).send({ password: userMockedData.password });
+
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe("Fill required fields");
+      });
+      it("should return status 400 if password field is missing", async () => {
+        const res = await request(app).put(UserRoute.UPDATE_PASSWORD).send({ newPassword: userMockedData.password });
+
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe("Fill required fields");
+      });
+    });
+
+    // it("should return status 400 if old password is incorrect", async () => {
+    //   (User.findById as jest.Mock).mockResolvedValue({ comparePassword: jest.fn().mockResolvedValue(false) });
+    //   const res = await request(app).put(UserRoute.UPDATE_PASSWORD).send({ password: userMockedData.password, newPassword: userMockedData.anotherPassword });
+
+    //   expect(res.status).toBe(400);
+    //   expect(res.body.message).toBe("Password dosen't match");
+    // });
+
+    // it("should update password successfully", async () => {
+    //   (User.findById as jest.Mock).mockResolvedValue({ comparePassword: jest.fn().mockResolvedValue(true) });
+    //   (bcrypt.hash as jest.Mock).mockResolvedValue("newHashedPassword");
+    //   (User.findByIdAndUpdate as jest.Mock).mockResolvedValue({ email: "test@test.com" });
+
+    //   const res = await request(app).put("/updatePassword").send({ password: "password", newPassword: "newPassword" });
+
+    //   expect(res.status).toBe(200);
+    //   expect(res.body.message).toBe("Password succsessfuly changed");
+    // });
+  });
+
+  // describe("getUser", () => {
+  //   it("should return the user object", async () => {
+  //     const user = { id: userMockedData.id, email: userMockedData.email };
+  //     (passport.authenticate as jest.Mock) = jest.fn((strategy, options, callback) => (req: IUserTest) => {
+  //       req.user = user;
+  //       callback(null, user);
+  //     });
+
+  //     const res = await request(app).get(UserRoute.GET_USER);
+
+  //     expect(res.status).toBe(200);
+  //     expect(res.body).toEqual(user);
+  //   });
+  // });
 });
