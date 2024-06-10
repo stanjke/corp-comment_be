@@ -14,3 +14,8 @@ interface IAuthor {
   _id: string;
   login: string;
 }
+
+export interface ICommentRequestDelete {
+  postId: string;
+  userId: string;
+}

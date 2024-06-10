@@ -2,58 +2,76 @@ import { Request, Response } from "express";
 import { IUserDocument } from "../../models/User";
 // import _ from "lodash";
 import { Comment, IComment } from "../../models/Comment";
-import { ICommentResponse } from "./types";
+import { ICommentRequestDelete } from "./types";
 
-export const createComment = (req: Request, res: Response) => {
-  const userData = req.user as IUserDocument;
-  const commentData: IComment = req.body;
-  commentData.author = userData?.id;
+export const createComment = async (req: Request, res: Response) => {
+  const { id } = req.user as IUserDocument;
+  const { content, companyName, createdAt, rating } = req.body as IComment;
 
-  if (!commentData.content || !commentData.companyName || !commentData.createdAt || !commentData.rating) {
+  if (!content || !companyName || !createdAt || !rating) {
     res.status(400).json({ message: "Fill correct fields" });
   }
-  const { author, content, companyName, createdAt, rating } = commentData;
-  const newComment = new Comment({ author, content, companyName, createdAt, rating });
-  newComment.populate({ path: "author", select: "_id login" });
-  newComment
-    .save()
-    .then((comment) => res.status(200).json({ message: "Comment was successfuly added", comment }))
-    .catch((err) => res.status(400).json({ message: `Error happend on server ${err}` }));
+
+  const newComment = new Comment({ author: id, content, companyName, createdAt, rating });
+
+  try {
+    await newComment.populate({ path: "author", select: "_id login" });
+    await newComment.save();
+    return res.status(200).json({ message: "Comment was successfuly added", newComment });
+  } catch (error) {
+    res.status(400).json({ message: `Error happend on server ${error}` });
+  }
 };
 
-export const getAllComments = (req: Request, res: Response) => {
-  Comment.find()
-    .populate({ path: "author", select: "_id login" })
-    .then((comments) => {
-      console.log(comments);
-      return res.status(200).json(comments);
-    })
-    .catch((err) => res.status(400).json({ message: `Error happend on server ${err}` }));
+export const getAllComments = async (req: Request, res: Response) => {
+  try {
+    const comments = await Comment.find().populate({ path: "author", select: "_id login" });
+    return res.status(200).json(comments);
+  } catch (error) {
+    res.status(400).json({ message: `Error happend on server ${error}` });
+  }
 };
 
-export const rateComment = (req: Request, res: Response) => {
+export const rateComment = async (req: Request, res: Response) => {
   const userData = req.user as IUserDocument;
   const commentData = req.body;
 
-  if (!req.body.postId || !req.body.userId) {
+  if (!userData) {
+    return res.status(401).json({ message: "You are not authorized" });
+  }
+
+  if (!commentData.postId || !commentData.rating) {
     return res.status(400).json({ message: "Fill correct fields" });
   }
 }; //PATCH
 
-export const deleteComment = (req: Request, res: Response) => {
-  const userData = req.user as IUserDocument;
-  const commentData = req.body;
+//CODE NOT WORKING PROPERLY. NEED TO FIX DELETECOMMENT FUNCTION
 
-  if (!req.body.postId || !req.body.userId) {
+export const deleteComment = (req: Request, res: Response) => {
+  const { id } = req.user as IUserDocument;
+  const { userId, postId } = req.body as ICommentRequestDelete;
+
+  if (!postId || !userId) {
     return res.status(400).json({ message: "Fill correct fields" });
   }
 
-  if (userData.id !== commentData.userId) {
+  if (id !== userId) {
     return res.status(403).json({ message: "You have not enought permissions" });
   } else {
-    Comment.findById(commentData.postId)
-      .then((comment) => comment?.author.toString() === userData.id ?? res.status(400).json({ message: "Comment not found" }))
-      .catch(() => res.status(400).json({ message: `Error happens on server!` }));
+    try {
+      const comment = Comment.findByIdAndDelete(postId);
+
+      if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      return res.status(200).json({ message: "Comment was successfuly deleted" });
+    } catch (error) {
+      res.status(400).json({ message: `Error happens on server!` });
+    }
+    // Comment.findById(postId)
+    //   .then((comment) => comment?.author.toString() === userData.id ?? res.status(400).json({ message: "Comment not found" }))
+    //   .catch(() => res.status(400).json({ message: `Error happens on server!` }));
   }
 };
 

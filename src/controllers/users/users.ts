@@ -88,7 +88,6 @@ export const updatePassword = async (req: Request, res: Response) => {
   if (!req.body.newPassword || !req.body.password) {
     return res.status(400).json({ message: "Fill required fields" });
   }
-
   try {
     const user = await User.findById(currentUser.id);
 
