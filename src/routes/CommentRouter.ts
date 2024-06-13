@@ -5,6 +5,7 @@ import { createComment, deleteComment, getAllComments } from "../controllers/com
 const router = express.Router();
 
 router.get("/", getAllComments);
-router.post("/create", passport.authenticate("jwt", { session: false }), createComment);
+// router.post("/create", passport.authenticate("jwt", { session: false }), createComment);
+router.post("/create", createComment);
 router.delete("/delete", passport.authenticate("jwt", { session: false }), deleteComment);
 export default router;
