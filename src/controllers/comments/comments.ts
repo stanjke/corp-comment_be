@@ -5,11 +5,17 @@ import { Comment, IComment } from "../../models/Comment";
 import { ICommentRequestDelete } from "./types";
 
 export const createComment = async (req: Request, res: Response) => {
+  console.log(req.user);
   const { id } = req.user as IUserDocument;
   const { content, companyName, createdAt, rating } = req.body as IComment;
 
-  if (!content || !companyName || !createdAt || !rating) {
-    res.status(400).json({ message: "Fill correct fields" });
+  console.log("content", content);
+  console.log("companyName", companyName);
+  console.log("createdAt", createdAt);
+  console.log("rating", rating);
+
+  if (!content || !companyName || !createdAt || (!rating && rating !== 0)) {
+    return res.status(400).json({ message: "Fill correct fields" });
   }
 
   const newComment = new Comment({ author: id, content, companyName, createdAt, rating });
@@ -19,7 +25,7 @@ export const createComment = async (req: Request, res: Response) => {
     await newComment.save();
     return res.status(201).json({ message: "Comment was successfuly added", newComment });
   } catch (error) {
-    res.status(400).json({ message: `Error happend on server ${error}` });
+    return res.status(400).json({ message: `Error happend on server ${error}` });
   }
 };
 
