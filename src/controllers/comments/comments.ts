@@ -53,7 +53,7 @@ export const rateComment = async (req: Request, res: Response) => {
 
 //CODE NOT WORKING PROPERLY. NEED TO FIX DELETECOMMENT FUNCTION
 
-export const deleteComment = (req: Request, res: Response) => {
+export const deleteComment = async (req: Request, res: Response) => {
   const { id } = req.user as IUserDocument;
   const { userId, postId } = req.body as ICommentRequestDelete;
 
@@ -63,21 +63,20 @@ export const deleteComment = (req: Request, res: Response) => {
 
   if (id !== userId) {
     return res.status(403).json({ message: "You have not enought permissions" });
-  } else {
-    try {
-      const comment = Comment.findByIdAndDelete(postId);
+  }
 
-      if (!comment) {
-        return res.status(404).json({ message: "Comment not found" });
-      }
+  try {
+    const comment = await Comment.findById(postId);
 
-      return res.status(200).json({ message: "Comment was successfuly deleted" });
-    } catch (error) {
-      res.status(400).json({ message: `Error happens on server!` });
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
     }
-    // Comment.findById(postId)
-    //   .then((comment) => comment?.author.toString() === userData.id ?? res.status(400).json({ message: "Comment not found" }))
-    //   .catch(() => res.status(400).json({ message: `Error happens on server!` }));
+
+    await Comment.deleteOne({ _id: postId });
+
+    return res.status(200).json({ message: "Comment was successfuly deleted" });
+  } catch (error) {
+    res.status(400).json({ message: `Error happens on server!` });
   }
 };
 

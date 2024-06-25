@@ -68,7 +68,7 @@ export const loginUser = async (req: Request, res: Response) => {
             login: user.login,
           };
 
-          jwt.sign(payload, secretOrKey as string, { expiresIn: 360000 }, (err, token) => res.status(200).json({ success: true, token: "Bearer " + token }));
+          jwt.sign(payload, secretOrKey as string, { expiresIn: 360000 }, (err, token) => res.status(200).json({ success: true, token: "Bearer " + token, userId: user._id }));
         } else {
           return res.status(400).json({ message: "Password incorrect" });
         }
