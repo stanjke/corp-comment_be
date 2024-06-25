@@ -17,7 +17,7 @@ export const createComment = async (req: Request, res: Response) => {
   try {
     await newComment.populate({ path: "author", select: "_id login" });
     await newComment.save();
-    return res.status(200).json({ message: "Comment was successfuly added", newComment });
+    return res.status(201).json({ message: "Comment was successfuly added", newComment });
   } catch (error) {
     res.status(400).json({ message: `Error happend on server ${error}` });
   }

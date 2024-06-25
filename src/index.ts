@@ -29,6 +29,13 @@ passportJwtStrategy(passport);
 app.use(AppRoute.USER, user);
 app.use(AppRoute.COMMENT, comment);
 
+app.use(
+  "/something",
+  express.Router().get("/", (req, res) => {
+    res.status(200).json({ message: "Something...." });
+  })
+);
+
 const port = 3000;
 
 app.listen(port, () => console.log(`Server running on port ${port}`));

@@ -78,7 +78,8 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 export const getUser = (req: Request, res: Response) => {
-  return res.json(req.user);
+  const currentUser = req.user as IUserDocument;
+  return res.json({ login: currentUser.login, email: currentUser.email, id: currentUser._id });
 };
 
 export const updatePassword = async (req: Request, res: Response) => {
