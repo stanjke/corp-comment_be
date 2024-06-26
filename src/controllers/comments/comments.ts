@@ -3,6 +3,7 @@ import { IUserDocument } from "../../models/User";
 // import _ from "lodash";
 import { Comment, IComment } from "../../models/Comment";
 import { ICommentRequestDelete } from "./types";
+import { ObjectId } from "mongoose";
 
 export const createComment = async (req: Request, res: Response) => {
   console.log(req.user);
@@ -38,16 +39,70 @@ export const getAllComments = async (req: Request, res: Response) => {
   }
 };
 
-export const rateComment = async (req: Request, res: Response) => {
-  const userData = req.user as IUserDocument;
-  const commentData = req.body;
+export const upVoteComment = async (req: Request, res: Response) => {
+  const { _id } = req.user as IUserDocument;
+  const { postId } = req.body;
 
-  if (!userData) {
+  console.log("ID: ", _id);
+
+  if (!_id) {
     return res.status(401).json({ message: "You are not authorized" });
   }
 
-  if (!commentData.postId || !commentData.rating) {
+  if (!postId) {
     return res.status(400).json({ message: "Fill correct fields" });
+  }
+
+  try {
+    const comment = await Comment.findById(postId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (comment.ratedBy.includes(_id as ObjectId)) {
+      return res.status(400).json({ message: "You have already rated this comment" });
+    }
+
+    comment.ratedBy.push(_id as ObjectId);
+
+    comment.rating = comment.rating + 1;
+    await comment.save();
+
+    return res.status(200).json({ message: "Comment was successfuly up voted" });
+  } catch (error) {
+    return res.status(400).json({ message: `Error happens on server!` });
+  }
+}; //PATCH
+
+export const downVoteComment = async (req: Request, res: Response) => {
+  const { _id } = req.user as IUserDocument;
+  const { postId } = req.body;
+
+  if (!_id) {
+    return res.status(401).json({ message: "You are not authorized" });
+  }
+
+  if (!postId) {
+    return res.status(400).json({ message: "Fill correct fields" });
+  }
+  try {
+    const comment = await Comment.findById(postId);
+
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (comment.ratedBy.includes(_id as ObjectId)) {
+      comment.ratedBy = [...comment.ratedBy.filter((id) => id == _id)];
+
+      comment.rating = comment.rating - 1;
+
+      await comment.save();
+
+      return res.status(200).json({ message: "Comment was successfuly down voted" });
+    }
+  } catch (error) {
+    return res.status(400).json({ message: `Error happens on server!` });
   }
 }; //PATCH
 

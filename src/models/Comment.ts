@@ -7,6 +7,7 @@ export interface IComment extends Document {
   createdAt: Date;
   author: ObjectId;
   rating: number;
+  ratedBy: ObjectId[];
 }
 
 const commentSchema = new Schema<IComment>({
@@ -33,5 +34,11 @@ const commentSchema = new Schema<IComment>({
     type: Number,
     required: true,
   },
+  ratedBy: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 export const Comment = mongoose.model<IComment>("Comment", commentSchema);
