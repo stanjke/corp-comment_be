@@ -10,11 +10,6 @@ export const createComment = async (req: Request, res: Response) => {
   const { id } = req.user as IUserDocument;
   const { content, companyName, createdAt, rating } = req.body as IComment;
 
-  console.log("content", content);
-  console.log("companyName", companyName);
-  console.log("createdAt", createdAt);
-  console.log("rating", rating);
-
   if (!content || !companyName || !createdAt || (!rating && rating !== 0)) {
     return res.status(400).json({ message: "Fill correct fields" });
   }
